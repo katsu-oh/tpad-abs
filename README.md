@@ -11,7 +11,7 @@ Run TpadAbs.exe by double‑clicking it, or via Task Scheduler or other methods.
 
 Before using this tool, configure Windows so that the three‑finger gestures are set to "Do nothing."
 
-To exit the program, end TpadDrag.exe from Task Manager.
+To exit the program, end TpadAbs.exe from Task Manager.
 
 ## Requirements
 - Windows 11 with a Precision Touchpad (Windows 10 64‑bit is also available)
