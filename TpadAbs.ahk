@@ -2,10 +2,10 @@
 
 ListLines(False)
 ;-----------------------------------------------------------------------------
-;@Ahk2Exe-SetFileVersion 1.0.0.0
+;@Ahk2Exe-SetFileVersion 1.0.1.0
 ;@Ahk2Exe-SetDescription Touchpad Utility "Touchpad`, absolutely!"
 ;@Ahk2Exe-SetProductName Touchpad`, absolutely!
-;@Ahk2Exe-SetProductVersion 1.0.0.0
+;@Ahk2Exe-SetProductVersion 1.0.1.0
 ;@Ahk2Exe-SetCopyright Katsuo`, 2026
 ;@Ahk2Exe-SetOrigFilename TpadAbs.exe
 ;-----------------------------------------------------------------------------
@@ -21,7 +21,13 @@ Critical(5)
 #DllLoad "hid"
 
 BeforePreparsed := True
+TouchPrevTickCount := A_TickCount
+TouchStartTickCount := A_TickCount
+ActiveContacts := False
 PrevTickCount := A_TickCount
+StartTickCount := A_TickCount
+FirstMove := True
+MoreFingers := False
 
 Device := Buffer(8 + A_PtrSize, 0)
 NumPut("UShort",0x0D, "UShort",0x05, "UInt",0x00000100, "Ptr",A_ScriptHwnd, Device)
@@ -37,9 +43,13 @@ OnTouch(wParam, lParam, msg, hwnd) {
 
     Global BeforePreparsed
     Global Preparsed
+    Global TouchPrevTickCount
+    Global TouchStartTickCount
+    Global ActiveContacts
     Global PrevTickCount
     Global StartTickCount
     Global FirstMove
+    Global MoreFingers
 
     RawInputSize := 0
     DllCall("GetRawInputData", "Ptr",lParam, "UInt",0x10000003, "Ptr",0,        "UInt*",&RawInputSize, "UInt",8 + A_PtrSize * 2)
@@ -59,7 +69,16 @@ OnTouch(wParam, lParam, msg, hwnd) {
     DllCall("hid\HidP_GetUsageValue", "Int",0x00, "UShort",0x0D, "UShort",0, "UShort",0x54, "UInt*",&ContactCount, "Ptr",Preparsed
                                     , "Ptr",RawInput.Ptr + 16 + A_PtrSize * 2, "UInt",RawInputSize - (16 + A_PtrSize * 2))
 
-    If (ContactCount = 3) {
+    If (TickCountDiff(ThisTickCount, TouchPrevTickCount) >= 62) {
+        TouchStartTickCount := ThisTickCount
+        ActiveContacts := False
+    }
+    If (ContactCount = 3) & (TickCountDiff(ThisTickCount, TouchStartTickCount) <= 156) {
+        ActiveContacts := True
+    }
+    TouchPrevTickCount := ThisTickCount
+
+    If (ActiveContacts) & (ContactCount = 3) {
         Caps := Buffer(64, 0)
         DllCall("hid\HidP_GetCaps", "Ptr",Preparsed, "Ptr",Caps)
 
@@ -99,9 +118,10 @@ OnTouch(wParam, lParam, msg, hwnd) {
             Offset += 72
         }
 
-        If (TickCountDiff(ThisTickCount, PrevTickCount) >= 93) {
+        If (MoreFingers) | (TickCountDiff(ThisTickCount, PrevTickCount) >= 62) {
             StartTickCount := ThisTickCount
             FirstMove := True
+            MoreFingers := False
         } Else {
             DeadzonePadLeftPercent   := 20
             DeadzonePadRightPercent  := 20
@@ -140,7 +160,10 @@ OnTouch(wParam, lParam, msg, hwnd) {
         }
 
         PrevTickCount := ThisTickCount
-    }    
+
+    } Else If (ContactCount >= 4) {
+        MoreFingers := True
+    }
 }
 
 ;-----------------------------------------------------------------------------
