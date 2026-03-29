@@ -9,7 +9,7 @@ This makes it easy to reach UI elements located at the edges of the screen—suc
 ## Usage
 Run TpadAbs.exe by double‑clicking it, or via Task Scheduler or other methods. Alternatively, you can run TpadAbs.ahk using AutoHotkey v2.0 (64‑bit).
 
-Before using this tool, configure Windows so that the three‑finger gestures are set to "Do nothing."
+Before using this tool, configure Windows so that the three‑finger gestures are set to "Nothing."
 
 To exit the program, end TpadAbs.exe from Task Manager.
 
